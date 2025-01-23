@@ -1,0 +1,118 @@
+/* Container Styling */
+.edit-user-container {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+/* Form Heading */
+.edit-user-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Form Fields */
+.edit-user-container form div {
+  margin-bottom: 15px;
+}
+
+.edit-user-container label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.edit-user-container input[type="text"],
+.edit-user-container input[type="email"],
+.edit-user-container input[type="date"],
+.edit-user-container input[type="radio"],
+.edit-user-container select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* Gender Selection */
+.gender div {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+}
+
+.gender label {
+  margin-left: 5px;
+  font-weight: normal;
+}
+
+/* Buttons */
+.edit-user-container button {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.edit-user-container button:hover {
+  background-color: #0056b3;
+}
+
+.edit-user-container button[type="button"] {
+  background-color: #6c757d;
+}
+
+.edit-user-container button[type="button"]:hover {
+  background-color: #5a6268;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .edit-user-container {
+    padding: 15px;
+  }
+
+  .edit-user-container h2 {
+    font-size: 20px;
+  }
+
+  .edit-user-container input,
+  .edit-user-container button {
+    font-size: 14px;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .edit-user-container {
+    padding: 10px;
+  }
+
+  .edit-user-container h2 {
+    font-size: 18px;
+  }
+
+  .gender div {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .edit-user-container input,
+  .edit-user-container button {
+    font-size: 12px;
+    padding: 6px;
+  }
+}

@@ -1,0 +1,113 @@
+/* General styling for the container */
+.user-management {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+  }
+  
+  .user-management h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  /* File input and buttons */
+  .user-management input[type="file"] {
+    margin-bottom: 10px;
+    display: block;
+  }
+  
+  .user-management button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin: 5px 0;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .user-management button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Table container for responsive scroll */
+  .table-container {
+    overflow-x: auto; /* Enables horizontal scrolling */
+    margin-top: 20px;
+    border: 1px solid #ddd; /* Optional border for better visuals */
+    border-radius: 8px; /* Smooth edges */
+  }
+  
+  /* Table styling */
+  .user-management table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px; /* Minimum width to ensure readability */
+  }
+  
+  .user-management th,
+  .user-management td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    font-size: 14px;
+  }
+  
+  .user-management th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+  
+  .user-management tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  .user-management tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .user-management {
+      padding: 10px;
+    }
+  
+    .user-management h2 {
+      font-size: 18px;
+    }
+  
+    .user-management button {
+      font-size: 12px;
+      padding: 8px 12px;
+    }
+  
+    .user-management th,
+    .user-management td {
+      font-size: 12px;
+      padding: 8px;
+    }
+  
+    .user-management input[type="file"] {
+      font-size: 14px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .user-management h2 {
+      font-size: 16px;
+    }
+  
+    .user-management th,
+    .user-management td {
+      font-size: 10px;
+      padding: 6px;
+    }
+  
+    .user-management button {
+      font-size: 10px;
+      padding: 5px 10px;
+    }
+  }
+  
