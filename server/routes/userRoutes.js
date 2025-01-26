@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const authenticate = require("../middleware/authenticate");
-const { uploadUsers, getAllUsers, updateUser, deleteUser } = require("../controllers/userController");
+const { exportUsers,uploadUsers, getAllUsers, updateUser, deleteUser } = require("../controllers/userController");
 const multer = require("multer");
 
 const storage = multer.diskStorage({
@@ -16,5 +16,6 @@ router.post("/upload-users", authenticate, upload.single("file"), uploadUsers);
 router.get("/", authenticate, getAllUsers);
 router.put("/:id", authenticate, updateUser);
 router.delete("/:id", authenticate, deleteUser);
+router.get("/export-users", authenticate, exportUsers);
 
 module.exports = router;

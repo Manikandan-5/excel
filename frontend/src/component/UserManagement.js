@@ -19,103 +19,141 @@ const UserManagement = () => {
       });
       setUsers(response.data);
     } catch (err) {
-      console.error(err);
+      console.error("Failed to fetch users:", err);
     }
   };
 
-//   email validation
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  const validateFileContent = async (file) => {
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: "array" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  
+      const requiredHeaders = ["first_name","last_name","role","dob","gender","email","mobile","city","state",];
+  
+      // Normalize headers to lowercase
+      const headers = jsonData[0]?.map((header) =>
+        header?.toLowerCase().trim()
+      );
+      // Check for missing required headers
+      const missingHeaders = requiredHeaders.filter(
+        (header) => !headers.includes(header)
+      );
+      if (missingHeaders.length > 0) {
+        setValidationErrors({
+          file: `Missing required headers: ${missingHeaders.join(", ")}`,
+        });
+        return false;
+      }
+      // Validate rows for email and dob
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const today = new Date();
+      const errors = [];
+      jsonData.slice(1).forEach((row, index) => {
+        const rowData = Object.fromEntries(
+          headers.map((header, i) => [header, row[i]])
+        );
+  
+        // email validation
+        if (rowData.email && !emailRegex.test(rowData.email)) {
+          errors.push(`Row ${index + 2}: Invalid email address "${rowData.email}"`);
+        }
+  
+        // Dob validation (not allowing future dates)
+        if (rowData.dob) {
+          const dob = new Date(rowData.dob);
+          if (isNaN(dob.getTime()) || dob > today) {
+            errors.push(
+              `Row ${index + 2}: Invalid date of birth "${rowData.dob}". Future dates are not allowed.`
+            );
+          }
+        }
+      });
+      if (errors.length > 0) {
+        setValidationErrors({ file: errors.join("\n") });
+        return false;
+      }
+        setValidationErrors({});
+      return true;
+    } catch (err) {
+      console.error("File validation error:", err);
+      setValidationErrors({ file: "Invalid file format." });
+      return false;
+    }
   };
 
-//   dob validation
-  const validateDOB = (dob) => {
-    const date = new Date(dob);
-    const today = new Date();
-    return date < today;
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    setError(""); // Clear previous errors
+
+    if (selectedFile) {
+      const fileType = selectedFile.name.split(".").pop().toLowerCase();
+      if (fileType !== "xlsx") {
+        setFile(null); // Reset file input
+        setError("Only .xlsx files are allowed.");
+        alert("Invalid file type. Please upload an .xlsx file.");
+        return;
+      }
+      setFile(selectedFile);
+    }
   };
-  const validateFields = (userData) => {
-    let errors = {};
-    if (!userData.first_name) errors.first_name = "First name is required";
-    if (!userData.last_name) errors.last_name = "Last name is required";
-    if (!userData.email || !validateEmail(userData.email)) errors.email = "Invalid email format";
-    if (!userData.dob || !validateDOB(userData.dob)) errors.dob = "Date of birth cannot be in the future";
-    if (!userData.mobile) errors.mobile = "Mobile number is required";
-    if (!userData.city) errors.city = "City is required";
-    if (!userData.state) errors.state = "State is required";
-    return errors;
-  };
-  
   const handleFileUpload = async () => {
     try {
-      if (!file) {
-        setError("Please select a file");
-        return;
-      }
-  
-      const formData = new FormData();
-      formData.append("file", file);
-  
-      // Upload the file and receive server response
-      const response = await axios.post("http://localhost:5000/users/upload-users", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
-  
-      // Assuming the server returns an array of user objects for validation
-      const usersData = response.data;
-  
-      // Perform client-side validation
-      let hasValidationErrors = false;
-      const validationErrors = {};
-  
-      for (const user of usersData) {
-        const errors = validateFields(user);
-        if (Object.keys(errors).length > 0) {
-          hasValidationErrors = true;
-          validationErrors[user.email || user.id || "unknown"] = errors; // Map errors per user
-        }
-      }
-  
-      if (hasValidationErrors) {
-        setValidationErrors(validationErrors);
-        setError("Validation errors found. Please fix them and try again.");
-        return;
-      }
-  
-      // If all validations pass
       setError("");
       setValidationErrors({});
-      fetchUsers(); // Refresh the user list
+      if (!file) {setError("Please select a file");return;}
+      const isValid = await validateFileContent(file);
+      if (!isValid) return;
+      const formData = new FormData();
+      formData.append("file", file);
+      await axios.post(
+        "http://localhost:5000/users/upload-users",
+        formData,
+        {    headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",}, } );
+      await fetchUsers(); // Refresh the users
+      setFile(null); // Clear file input
+      setError("File uploaded successfully.");
     } catch (err) {
-      console.error("Error uploading file:", err);
-      setError(err.response?.data?.message || "Something went wrong. Please try again.");
+      console.error("Error uploading file:", err.message);
+      setError(
+        err.response?.data?.message || "Something went wrong. Please try again.");}};
+
+  const handleExport = async () => {
+    try {
+      // Call the backend API to export users
+      const response = await axios.get("http://localhost:5000/users/export-users", {  headers: {
+          Authorization: `Bearer ${token}`,
+        },responseType: "blob", // Important for downloading files
+  });
+      // Create a URL for the file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "users.xlsx"); // Name of the downloaded file
+      document.body.appendChild(link);
+      link.click(); // Trigger the download
+      link.parentNode.removeChild(link); // Clean up the DOM
+    } catch (error) {
+      console.error("Error exporting users:", error);
+      alert("Failed to export users. Please try again.");
     }
   };
-  
-  const handleExport = () => {
-    const worksheet = XLSX.utils.json_to_sheet(users);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
-    XLSX.writeFile(workbook, "users.xlsx");
-  };
-
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/users/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchUsers();
+      await fetchUsers();
     } catch (err) {
       console.error("Failed to delete user");
     }
   };
-
   const navigateToEdit = (user) => {
-    navigate(`/edit-user/${user._id}`, { state: { user } });
+    navigate(`/users/${user._id}`, { state: { user } });
   };
 
   useEffect(() => {
@@ -126,24 +164,19 @@ const UserManagement = () => {
     <div className="user-management">
       <h2>User Management</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      {Object.keys(validationErrors).length > 0 && (
-        <div style={{ color: "red" }}>
-          {Object.entries(validationErrors).map(([field, message]) => (
-            <p key={field}>{message}</p>
-          ))}
-        </div>
-      )}
-      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+      {validationErrors.file && (<div style={{ color: "red" }}>
+          <strong>File Error:</strong> {validationErrors.file}
+        </div>)}
+      <input
+        type="file"   onChange={handleFileChange}
+      />
       <button onClick={handleFileUpload}>Upload</button>
       <button onClick={handleExport}>Export</button>
-
-      {/* Scrollable container for the table */}
       <div className="table-container">
         <table>
           <thead>
             <tr>
-              <th>First Name</th>
-              <th>Last Name</th>
+              <th>First Name</th>  <th>Last Name</th>
               <th>Role</th>
               <th>DOB</th>
               <th>Gender</th>

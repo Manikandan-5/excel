@@ -21,7 +21,7 @@ function App() {
           }
         />
         <Route
-          path="/edit-user/:id"
+          path="/users/:id"
           element={
             <ProtectedRoute>
               <EditUser />

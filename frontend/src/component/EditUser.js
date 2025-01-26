@@ -8,6 +8,8 @@ const EditUser = () => {
   const navigate = useNavigate();
   const { user } = location.state;
   const [editedUser, setEditedUser] = useState(user);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
   const token = localStorage.getItem("token");
 
   const handleInputChange = (e) => {
@@ -22,21 +24,35 @@ const EditUser = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation
+    if (!editedUser.first_name || !editedUser.last_name || !editedUser.mobile || !editedUser.email || !editedUser.dob || !editedUser.gender || !editedUser.role || !editedUser.city || !editedUser.state) {
+      setErrorMessage("All fields are required.");
+      setSuccessMessage(null);
+      return;
+    }
+
     try {
       await axios.put(`http://localhost:5000/users/${editedUser._id}`, editedUser, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      setSuccessMessage("User updated successfully!");
+      setErrorMessage(null);
       navigate("/users");
     } catch (err) {
-      console.error("Failed to update user");
+      setErrorMessage("Failed to update user.");
+      setSuccessMessage(null);
     }
   };
 
   return (
     <div className="edit-user-container">
       <form onSubmit={handleSubmit}>
-        <h2>Welcome,{editedUser.first_name}</h2>
+        <h2>Welcome, {editedUser.first_name}</h2>
         <h3>Edit Data</h3>
+
+        {successMessage && <div className="success-message">{successMessage}</div>}
+        {errorMessage && <div className="error-message">{errorMessage}</div>}
 
         <div>
           <label htmlFor="first_name">First Name</label>
@@ -47,6 +63,7 @@ const EditUser = () => {
             value={editedUser.first_name}
             onChange={handleInputChange}
             placeholder="First Name"
+            required
           />
         </div>
 
@@ -59,6 +76,7 @@ const EditUser = () => {
             value={editedUser.last_name}
             onChange={handleInputChange}
             placeholder="Last Name"
+            required
           />
         </div>
 
@@ -71,6 +89,7 @@ const EditUser = () => {
             value={editedUser.mobile}
             onChange={handleInputChange}
             placeholder="Mobile"
+            required
           />
         </div>
 
@@ -83,21 +102,23 @@ const EditUser = () => {
             value={editedUser.email}
             onChange={handleInputChange}
             placeholder="Email"
+            required
           />
         </div>
 
         <div>
-  <label htmlFor="dob">Date of Birth</label>
-  <input
-    type="date"
-    id="dob"
-    name="dob"
-    value={new Date(editedUser.dob).toISOString().split('T')[0]} // Correcting date format
-    onChange={handleInputChange}
-    placeholder="Date of Birth"
-    max={new Date().toISOString().split("T")[0]} // Setting max date as today's date
-  />
-</div>
+          <label htmlFor="dob">Date of Birth</label>
+          <input
+            type="date"
+            id="dob"
+            name="dob"
+            value={new Date(editedUser.dob).toISOString().split('T')[0]} // Correcting date format
+            onChange={handleInputChange}
+            placeholder="Date of Birth"
+            max={new Date().toISOString().split("T")[0]} // Setting max date as today's date
+            required
+          />
+        </div>
 
         <div className="gender">
           <label>Gender:</label>
@@ -109,18 +130,19 @@ const EditUser = () => {
               value="Male"
               checked={editedUser.gender.toLowerCase() === "male"}
               onChange={handleGenderChange}
+              required
             />
             <label htmlFor="male">Male</label>
 
             <input
-  type="radio"
-  id="female"
-  name="gender"
-  value="Female"
-  checked={editedUser.gender.toLowerCase() === "female"}
-  onChange={handleGenderChange}
-/>
-
+              type="radio"
+              id="female"
+              name="gender"
+              value="Female"
+              checked={editedUser.gender.toLowerCase() === "female"}
+              onChange={handleGenderChange}
+              required
+            />
             <label htmlFor="female">Female</label>
 
             <input
@@ -130,6 +152,7 @@ const EditUser = () => {
               value="Other"
               checked={editedUser.gender.toLowerCase() === "other"}
               onChange={handleGenderChange}
+              required
             />
             <label htmlFor="other">Other</label>
           </div>
@@ -144,6 +167,7 @@ const EditUser = () => {
             value={editedUser.role}
             onChange={handleInputChange}
             placeholder="Role"
+            required
           />
         </div>
 
@@ -156,6 +180,7 @@ const EditUser = () => {
             value={editedUser.city}
             onChange={handleInputChange}
             placeholder="City"
+            required
           />
         </div>
 
@@ -168,6 +193,7 @@ const EditUser = () => {
             value={editedUser.state}
             onChange={handleInputChange}
             placeholder="State"
+            required
           />
         </div>
 
