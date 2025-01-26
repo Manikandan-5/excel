@@ -35,9 +35,7 @@ const UserManagement = () => {
     const today = new Date();
     return date < today;
   };
-
   const validateFields = (userData) => {
-    // check for the user data
     let errors = {};
     if (!userData.first_name) errors.first_name = "First name is required";
     if (!userData.last_name) errors.last_name = "Last name is required";
@@ -48,52 +46,56 @@ const UserManagement = () => {
     if (!userData.state) errors.state = "State is required";
     return errors;
   };
-
+  
   const handleFileUpload = async () => {
-    if (!file) return setError("Please select a file");
-
-    const formData = new FormData();
-    formData.append("file", file);
-
     try {
-      const response = await axios.post(
-        "http://localhost:5000/validate-file",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      // Assuming the server returns an array of user objects for validation
-      const usersData = response.data;
-
-      // Perform client-side validation
-      for (const user of usersData) {
-        const errors = validateFields(user);
-        if (Object.keys(errors).length > 0) {
-          setValidationErrors(errors);
-          return;
-        }
+      if (!file) {
+        setError("Please select a file");
+        return;
       }
-
-      // If all validations pass, upload the file
-      await axios.post("http://localhost:5000/upload-users", formData, {
+  
+      const formData = new FormData();
+      formData.append("file", file);
+  
+      // Upload the file and receive server response
+      const response = await axios.post("http://localhost:5000/users/upload-users", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         },
       });
-
+  
+      // Assuming the server returns an array of user objects for validation
+      const usersData = response.data;
+  
+      // Perform client-side validation
+      let hasValidationErrors = false;
+      const validationErrors = {};
+  
+      for (const user of usersData) {
+        const errors = validateFields(user);
+        if (Object.keys(errors).length > 0) {
+          hasValidationErrors = true;
+          validationErrors[user.email || user.id || "unknown"] = errors; // Map errors per user
+        }
+      }
+  
+      if (hasValidationErrors) {
+        setValidationErrors(validationErrors);
+        setError("Validation errors found. Please fix them and try again.");
+        return;
+      }
+  
+      // If all validations pass
       setError("");
-      fetchUsers();
+      setValidationErrors({});
+      fetchUsers(); // Refresh the user list
     } catch (err) {
-      setError("Failed to upload file");
+      console.error("Error uploading file:", err);
+      setError(err.response?.data?.message || "Something went wrong. Please try again.");
     }
   };
-
+  
   const handleExport = () => {
     const worksheet = XLSX.utils.json_to_sheet(users);
     const workbook = XLSX.utils.book_new();
